@@ -25,18 +25,21 @@ namespace GraduationProject.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Ticket -> User
             modelBuilder.Entity<Ticket>()
                 .HasOne(t => t.User)
                 .WithMany(u => u.Tickets)
                 .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Ticket -> Route  ❗ مهم
             modelBuilder.Entity<Ticket>()
                 .HasOne(t => t.Route)
                 .WithMany()
                 .HasForeignKey(t => t.RouteId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Ticket -> Bus ❗ مهم
             modelBuilder.Entity<Ticket>()
                 .HasOne(t => t.Bus)
                 .WithMany(b => b.Tickets)
