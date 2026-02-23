@@ -21,7 +21,7 @@ namespace GraduationProject.Services
             using var client = new SmtpClient();
 
             client.Connect("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
-            client.Authenticate("hassanelhellw02@gmail.com", "xwiyofqyhmnqztzj");
+            client.Authenticate("transitwayteam@gmail.com", "nydkizprndtforqf");
 
             client.Send(message);
             client.Disconnect(true);
