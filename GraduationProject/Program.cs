@@ -1,6 +1,10 @@
 using GraduationProject.Data;
+using GraduationProject.Entites;
 using GraduationProject.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,11 +37,12 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<GoogleAuthService>();
 var app = builder.Build();
+builder.Services.AddAuthorization();
 app.UseCors("AllowAll");
 // Configure the HTTP request pipeline.
     app.UseSwagger();
     app.UseSwaggerUI();
-
+app.UseAuthentication();
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

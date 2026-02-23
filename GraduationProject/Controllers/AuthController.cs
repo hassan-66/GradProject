@@ -14,12 +14,14 @@ namespace GraduationProject.Controllers
         private readonly ApplicationDbContext _context;
         private readonly EmailService _emailService;
         private readonly GoogleAuthService _googleService;
+        //private readonly JwtServices _jwtService;
 
         public AuthController(ApplicationDbContext context , EmailService emailService, GoogleAuthService googleService)
         {
             _context = context;
             _emailService = emailService;
             _googleService = googleService;
+            //_jwtService = jwtService;
         }
 
 
@@ -168,6 +170,37 @@ namespace GraduationProject.Controllers
                 user.Email,
                 user.FullName
             });
+        }
+        [HttpPost("admin/login")]
+        public IActionResult AdminLogin([FromBody] LoginDto dto)
+        {
+            var admin = _context.Admins.FirstOrDefault(u => u.Email == dto.Email);
+            if (admin != null && BCrypt.Net.BCrypt.Verify(dto.Password, admin.PasswordHash))
+            {
+                return Ok(new
+                {
+                    Type = "Admin",
+                    admin.Id,
+                    admin.Email
+                });
+            }
+            return Unauthorized("Invalid email or password");
+        }
+        [HttpGet("create-admin")]
+        public IActionResult CreateAdmin()
+        {
+            var admin = new Admin
+            {
+                Name = "Main Admin",
+                Email = "admin123@gmail.com",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin@12345"),
+                Role = "Admin"
+            };
+
+            _context.Admins.Add(admin);
+            _context.SaveChanges();
+
+            return Ok("Admin created");
         }
     }
 }

@@ -9,7 +9,7 @@ namespace GraduationProject.Services
         public void SendEmail(string toEmail, string code)
         {
             var message = new MimeMessage();
-            message.From.Add(new MailboxAddress("Smart Transport", "yourgmail@gmail.com"));
+            message.From.Add(new MailboxAddress("Transit Way", "yourgmail@gmail.com"));
             message.To.Add(new MailboxAddress("", toEmail));
             message.Subject = "Password Reset Code";
 
