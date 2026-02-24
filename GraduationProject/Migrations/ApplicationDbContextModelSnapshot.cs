@@ -30,6 +30,9 @@ namespace GraduationProject.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("DriverId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -46,7 +49,14 @@ namespace GraduationProject.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("DriverId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Admins");
                 });
@@ -389,6 +399,25 @@ namespace GraduationProject.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Zones");
+                });
+
+            modelBuilder.Entity("GraduationProject.Entites.Admin", b =>
+                {
+                    b.HasOne("GraduationProject.Entites.Driver", "Driver")
+                        .WithMany()
+                        .HasForeignKey("DriverId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GraduationProject.Entites.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Driver");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("GraduationProject.Entites.Bus", b =>

@@ -75,11 +75,6 @@ namespace GraduationProject.Data
                 .HasOne(c => c.User)
                 .WithMany(u => u.Complaints)
                 .HasForeignKey(c => c.UserId);
-
-            modelBuilder.Entity<Driver>()
-                .HasOne(d => d.Bus)
-                .WithOne()
-                .HasForeignKey<Driver>(d => d.BusId);
         }
 
     }
