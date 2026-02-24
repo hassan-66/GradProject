@@ -14,14 +14,11 @@ namespace GraduationProject.Controllers
         private readonly ApplicationDbContext _context;
         private readonly EmailService _emailService;
         private readonly GoogleAuthService _googleService;
-        //private readonly JwtServices _jwtService;
-
         public AuthController(ApplicationDbContext context , EmailService emailService, GoogleAuthService googleService)
         {
             _context = context;
             _emailService = emailService;
             _googleService = googleService;
-            //_jwtService = jwtService;
         }
 
 
@@ -201,6 +198,51 @@ namespace GraduationProject.Controllers
             _context.SaveChanges();
 
             return Ok("Admin created");
+        }
+        [HttpPost("Admin-request-reset")]
+        public IActionResult AdminRequestReset([FromBody] ResetRequestDto dto)
+        {
+            var admin = _context.Admins.FirstOrDefault(a => a.Email == dto.Email);
+
+            if (admin == null)
+                return BadRequest("Admin email not found");
+
+            var code = new Random().Next(100000, 999999).ToString();
+
+            var reset = new PasswordResetCode
+            {
+                Email = dto.Email,
+                Code = code,
+                ExpirationTime = DateTime.UtcNow.AddMinutes(10)
+            };
+
+            _context.PasswordResetCodes.Add(reset);
+            _context.SaveChanges();
+
+            _emailService.SendEmail(dto.Email, code);
+
+            return Ok("Reset code sent to admin email");
+        }
+        [HttpPost("Admin-confirm-reset")]
+        public IActionResult AdminConfirmReset([FromBody] ConfirmResetDto dto)
+        {
+            var reset = _context.PasswordResetCodes
+                .FirstOrDefault(r => r.Email == dto.Email && r.Code == dto.Code);
+
+            if (reset == null || reset.ExpirationTime < DateTime.UtcNow)
+                return BadRequest("Invalid or expired code");
+
+            var admin = _context.Admins.FirstOrDefault(a => a.Email == dto.Email);
+
+            if (admin == null)
+                return BadRequest("Admin not found");
+
+            admin.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+
+            _context.PasswordResetCodes.Remove(reset);
+            _context.SaveChanges();
+
+            return Ok("Admin password updated successfully");
         }
     }
 }
