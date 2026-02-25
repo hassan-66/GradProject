@@ -1,0 +1,233 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live Tracking</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        #controls, #info {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            font-family: Arial, Helvetica, sans-serif;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        #controls {
+            top: 10px;
+        }
+
+        #info {
+            top: 70px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="controls">
+        <label><strong>Speed:</strong></label>
+        <input type="range" id="speedSlider" min="200" max="3000" value="1000" step="100">
+        <span id="speedValue">1000 ms</span>
+    </div>
+
+    <div id="info">
+        <div>📏 Distance: <span id="distance">0</span></div>
+        <div>⏱ ETA: <span id="eta">0</span></div>
+    </div>
+
+    <div id="map"></div>
+
+    <!-- Leaflet -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- SignalR -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
+    <script>
+
+        // ===============================
+        // MAP INITIALIZATION
+        // ===============================
+        const map = L.map('map').setView([30.1061, 31.3273], 15);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // ===============================
+        // ROUTE (must match backend)
+        // ===============================
+        const route = [
+            [30.10617850522894, 31.3273059961349],
+            [30.10607459495127, 31.327462199382122],
+            [30.107870368037833, 31.32963279331024],
+            [30.106207001539808, 31.33144751199704],
+            [30.106949381444682, 31.333119943648406]
+        ];
+
+        const routeLine = L.polyline(route, {
+            color: 'blue',
+            weight: 4
+        }).addTo(map);
+
+        map.fitBounds(routeLine.getBounds());
+
+        // ===============================
+        // ICONS
+        // ===============================
+        const startIcon = L.icon({
+            iconUrl: 'https://maps.google.com/mapfiles/ms/icons/green-dot.png',
+            iconSize: [32, 32],
+            iconAnchor: [16, 32]
+        });
+
+        const endIcon = L.icon({
+            iconUrl: 'https://maps.google.com/mapfiles/ms/icons/red-dot.png',
+            iconSize: [32, 32],
+            iconAnchor: [16, 32]
+        });
+
+        const busIcon = L.icon({
+            iconUrl: '/icons/Bus.png',
+            iconSize: [75, 75],
+            iconAnchor: [38, 75],
+            popupAnchor: [0, -75]
+        });
+
+        L.marker(route[0], { icon: startIcon }).addTo(map).bindPopup("Start");
+        L.marker(route[route.length - 1], { icon: endIcon }).addTo(map).bindPopup("End");
+
+        // ===============================
+        // SPEED CONTROL
+        // ===============================
+        let animationSpeed = 1000;
+        const slider = document.getElementById("speedSlider");
+        const speedValue = document.getElementById("speedValue");
+
+        slider.addEventListener("input", () => {
+            animationSpeed = parseInt(slider.value);
+            speedValue.innerText = animationSpeed + " ms";
+        });
+
+        // ===============================
+        // DISTANCE CALCULATION (Haversine)
+        // ===============================
+        function getDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371000;
+            const toRad = deg => deg * Math.PI / 180;
+
+            const dLat = toRad(lat2 - lat1);
+            const dLng = toRad(lng2 - lng1);
+
+            const a =
+                Math.sin(dLat / 2) ** 2 +
+                Math.cos(toRad(lat1)) *
+                Math.cos(toRad(lat2)) *
+                Math.sin(dLng / 2) ** 2;
+
+            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+        }
+
+        function calculateRemainingDistance(index) {
+            let distance = 0;
+
+            for (let i = index; i < route.length - 1; i++) {
+                distance += getDistance(
+                    route[i][0], route[i][1],
+                    route[i + 1][0], route[i + 1][1]
+                );
+            }
+
+            return distance;
+        }
+
+        // ===============================
+        // SMOOTH ANIMATION
+        // ===============================
+        function animateMarker(marker, from, to, duration) {
+            const startTime = performance.now();
+
+            function animate(time) {
+                const progress = Math.min((time - startTime) / duration, 1);
+
+                const lat = from[0] + (to[0] - from[0]) * progress;
+                const lng = from[1] + (to[1] - from[1]) * progress;
+
+                marker.setLatLng([lat, lng]);
+
+                if (progress < 1) requestAnimationFrame(animate);
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        // ===============================
+        // SIGNALR TRACKING
+        // ===============================
+        const markers = {};
+        const lastPositions = {};
+        let routeIndex = 0;
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/trackingHub")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("ReceiveLocationUpdate", (id, lat, lng) => {
+
+            const newPos = [lat, lng];
+
+            if (!markers[id]) {
+                markers[id] = L.marker(newPos, { icon: busIcon }).addTo(map);
+                lastPositions[id] = newPos;
+                routeIndex = 0;
+                return;
+            }
+
+            animateMarker(markers[id], lastPositions[id], newPos, animationSpeed);
+            lastPositions[id] = newPos;
+
+            const remainingDistance = calculateRemainingDistance(routeIndex);
+
+            document.getElementById("distance").innerText =
+                remainingDistance > 1000
+                    ? (remainingDistance / 1000).toFixed(2) + " km"
+                    : Math.round(remainingDistance) + " m";
+
+            const speedMetersPerSecond = remainingDistance / (animationSpeed / 1000);
+            const etaSeconds = remainingDistance / speedMetersPerSecond;
+
+            document.getElementById("eta").innerText =
+                etaSeconds > 60
+                    ? Math.ceil(etaSeconds / 60) + " min"
+                    : Math.ceil(etaSeconds) + " sec";
+
+            routeIndex++;
+        });
+
+        connection.start()
+            .then(() => console.log("SignalR connected"))
+            .catch(err => console.error(err));
+
+    </script>
+
+</body>
+</html>

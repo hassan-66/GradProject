@@ -1,10 +1,7 @@
 using GraduationProject.Data;
-using GraduationProject.Entites;
+using GraduationProject.Hubs;
 using GraduationProject.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +11,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -26,6 +24,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
             );
         })
 );
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll",
@@ -34,19 +33,31 @@ builder.Services.AddCors(options =>
                   .AllowAnyHeader()
                   .AllowAnyMethod());
 });
+
+builder.Services.AddSignalR();
+builder.Services.AddHostedService<LocationSimulationService>();
+builder.Services.AddAuthorization();
+
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<GoogleAuthService>();
+builder.Services.AddHostedService<LocationSimulationService>();
+
 var app = builder.Build();
-builder.Services.AddAuthorization();
-app.UseCors("AllowAll");
-// Configure the HTTP request pipeline.
-    app.UseSwagger();
-    app.UseSwaggerUI();
-app.UseAuthentication();
+
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
 app.UseHttpsRedirection();
 
+app.UseStaticFiles();
+
+app.UseCors("AllowAll");
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<TrackingHub>("/trackingHub");
 
 app.Run();
