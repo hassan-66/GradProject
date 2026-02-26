@@ -20,7 +20,9 @@ namespace GraduationProject.Data
         public DbSet<Station> Stations { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Driver> Drivers { get; set; }
+        public DbSet<RoutePoint> RoutePoints { get; set; }
         public DbSet<PasswordResetCode> PasswordResetCodes { get; set; }
+        public DbSet<Alert> Alerts { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -75,6 +77,16 @@ namespace GraduationProject.Data
                 .HasOne(c => c.User)
                 .WithMany(u => u.Complaints)
                 .HasForeignKey(c => c.UserId);
+
+            modelBuilder.Entity<RoutePoint>()
+       .HasOne(rp => rp.Route)
+       .WithMany(r => r.RoutePoints)
+       .HasForeignKey(rp => rp.RouteId)
+       .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Alert>().HasOne(a=> a.Bus).WithMany(b=> b.alerts)
+                .HasForeignKey(a => a.BusId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
 
     }

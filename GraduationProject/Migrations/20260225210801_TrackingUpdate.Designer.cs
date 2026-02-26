@@ -4,6 +4,7 @@ using GraduationProject.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GraduationProject.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260225210801_TrackingUpdate")]
+    partial class TrackingUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,31 +52,6 @@ namespace GraduationProject.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Admins");
-                });
-
-            modelBuilder.Entity("GraduationProject.Entites.Alert", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("BusId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BusId");
-
-                    b.ToTable("Alerts");
                 });
 
             modelBuilder.Entity("GraduationProject.Entites.Bus", b =>
@@ -439,17 +417,6 @@ namespace GraduationProject.Migrations
                     b.ToTable("Zones");
                 });
 
-            modelBuilder.Entity("GraduationProject.Entites.Alert", b =>
-                {
-                    b.HasOne("GraduationProject.Entites.Bus", "Bus")
-                        .WithMany("alerts")
-                        .HasForeignKey("BusId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Bus");
-                });
-
             modelBuilder.Entity("GraduationProject.Entites.Bus", b =>
                 {
                     b.HasOne("GraduationProject.Entites.Route", "Route")
@@ -559,8 +526,6 @@ namespace GraduationProject.Migrations
                     b.Navigation("BusLocations");
 
                     b.Navigation("Tickets");
-
-                    b.Navigation("alerts");
                 });
 
             modelBuilder.Entity("GraduationProject.Entites.Route", b =>

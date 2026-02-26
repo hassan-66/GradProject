@@ -2,8 +2,9 @@
 {
     public class TrainLocationDto
     {
-        public string Id { get; set; }
+        public int BusId { get; set; }
         public double Lat { get; set; }
         public double Lng { get; set; }
+        public double speed { get; set; }
     }
 }
