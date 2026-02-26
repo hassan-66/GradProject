@@ -23,11 +23,9 @@ namespace GraduationProject.Controllers
             _hub = hub;
         }
 
-        // ===============================
-        // UPDATE LOCATION (Driver sends GPS)
-        // ===============================
+
         [HttpPost("update")]
-        public async Task<IActionResult> UpdateLocation([FromBody] TrainLocationDto loc)
+        public async Task<IActionResult> UpdateLocation([FromBody] BusLocationDto loc)
         {
             var bus = await _context.Buses
                 .FirstOrDefaultAsync(b => b.Id == loc.BusId);
@@ -61,7 +59,7 @@ namespace GraduationProject.Controllers
         }
 
  
-        private void CheckOffRoute(Bus bus, TrainLocationDto loc)
+        private void CheckOffRoute(Bus bus, BusLocationDto loc)
         {
             var routePoints = _context.RoutePoints
                 .Where(r => r.RouteId == bus.RouteId)

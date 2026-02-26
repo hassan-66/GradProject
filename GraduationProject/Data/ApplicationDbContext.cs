@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using GraduationProject.Entites;
+using Route = GraduationProject.Entites.Route;
 
 namespace GraduationProject.Data
 {
-    public class ApplicationDbContext: DbContext
+    public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
@@ -11,7 +12,7 @@ namespace GraduationProject.Data
         }
         public DbSet<User> Users { get; set; }
         public DbSet<Bus> Buses { get; set; }
-        public DbSet<Entites.Route> Routes { get; set; }
+        public DbSet<Route> Routes { get; set; } // Use alias
         public DbSet<Ticket> Tickets { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Complaint> Complaints { get; set; }
@@ -58,7 +59,7 @@ namespace GraduationProject.Data
                 .WithMany(r => r.Buses)
                 .HasForeignKey(b => b.RouteId);
 
-            modelBuilder.Entity<Entites.Route>()
+            modelBuilder.Entity<Route>() // Use alias
                 .HasOne(r => r.Zone)
                 .WithMany(z => z.Routes)
                 .HasForeignKey(r => r.ZoneId);
@@ -79,14 +80,53 @@ namespace GraduationProject.Data
                 .HasForeignKey(c => c.UserId);
 
             modelBuilder.Entity<RoutePoint>()
-       .HasOne(rp => rp.Route)
-       .WithMany(r => r.RoutePoints)
-       .HasForeignKey(rp => rp.RouteId)
-       .OnDelete(DeleteBehavior.Cascade);
+                .HasOne(rp => rp.Route)
+                .WithMany(r => r.RoutePoints)
+                .HasForeignKey(rp => rp.RouteId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Alert>().HasOne(a=> a.Bus).WithMany(b=> b.alerts)
+            modelBuilder.Entity<Alert>().HasOne(a => a.Bus).WithMany(b => b.alerts)
                 .HasForeignKey(a => a.BusId)
                 .OnDelete(DeleteBehavior.Restrict);
+            // Bus - Admin
+            modelBuilder.Entity<Bus>()
+                .HasOne(b => b.CreatedByAdmin)
+                .WithMany(a => a.CreatedBus)
+                .HasForeignKey(b => b.CreatedByAdminId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Route - Admin
+            modelBuilder.Entity<Route>() // Use alias
+                .HasOne(r => r.CreatedByAdmin)
+                .WithMany(a => a.CreatedRoutes)
+                .HasForeignKey(r => r.CreatedByAdminId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Station - Admin
+            modelBuilder.Entity<Station>()
+                .HasOne(s => s.CreatedStations)
+                .WithMany(a => a.CreatedStations)
+                .HasForeignKey(s => s.CreatedByAdmin)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Zone - Admin
+            modelBuilder.Entity<Zone>()
+                .HasOne(z => z.CreatedByAdmin)
+                .WithMany(a => a.CreatedZones)
+                .HasForeignKey(z => z.CreatedByAdminId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Alerts - Admin
+            modelBuilder.Entity<Alert>()
+                .HasOne(a => a.CreatedAlerts)
+                .WithMany()
+                .HasForeignKey(a => a.CreatedByAdmin)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Driver>()
+    .HasOne(d => d.Bus)
+    .WithOne(b => b.Driver)
+    .HasForeignKey<Driver>(d => d.BusId);
         }
 
     }

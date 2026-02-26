@@ -11,5 +11,7 @@ namespace GraduationProject.Entites
         public ICollection<Station> Stations { get; set; }
         public ICollection<Bus> Buses { get; set; }
         public ICollection<RoutePoint> RoutePoints { get; set; } // Add this property
+        public int? CreatedByAdminId { get; set; }
+        public Admin CreatedByAdmin { get; set; }
     }
 }

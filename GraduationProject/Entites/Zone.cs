@@ -9,5 +9,7 @@
         public decimal Price { get; set; }
 
         public ICollection<Route> Routes { get; set; }
+        public int? CreatedByAdminId { get; set; }
+        public Admin CreatedByAdmin { get; set; }
     }
 }

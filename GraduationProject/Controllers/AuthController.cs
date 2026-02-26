@@ -97,11 +97,16 @@ namespace GraduationProject.Controllers
 
             return Unauthorized("Invalid email or password");
         }
+
+
         [HttpPost("request-reset")]
         public IActionResult RequestPasswordReset([FromBody] ResetRequestDto dto)
         {
+            // الشاشة الأولى: بتبعت الإيميل عشان تستلم الكود
             var user = _context.Users.FirstOrDefault(u => u.Email == dto.Email);
-            if (user == null)
+            var driver = _context.Drivers.FirstOrDefault(d => d.Email == dto.Email);
+
+            if (user == null && driver == null)
                 return BadRequest("Email not found");
 
             var code = new Random().Next(100000, 999999).ToString();
@@ -118,25 +123,54 @@ namespace GraduationProject.Controllers
 
             _emailService.SendEmail(dto.Email, code);
 
-            return Ok("Reset code sent");
+            return Ok(new { message = "Reset code sent" });
         }
+
+        [HttpPost("verify-code")]
+        public IActionResult VerifyCode([FromBody] VerifyCodeDto dto)
+        {
+            var reset = _context.PasswordResetCodes
+                .FirstOrDefault(r => r.Email == dto.Email && r.Code == dto.Code);
+
+            if (reset == null || reset.ExpirationTime < DateTime.UtcNow)
+                return BadRequest("Invalid or expired code");
+
+            // بنرجع Ok عشان الفلاتر ينقل اليوزر للشاشة التالتة
+            return Ok(new { message = "Code is valid" });
+        }
+
+
         [HttpPost("confirm-reset")]
         public IActionResult ConfirmReset([FromBody] ConfirmResetDto dto)
         {
             var reset = _context.PasswordResetCodes
                 .FirstOrDefault(r => r.Email == dto.Email && r.Code == dto.Code);
 
-            if (reset == null || reset.ExpirationTime < DateTime.UtcNow|| dto.Code != reset.Code)
+            if (reset == null || reset.ExpirationTime < DateTime.UtcNow)
                 return BadRequest("Invalid or expired code");
 
-            var user = _context.Users.First(u => u.Email == dto.Email);
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            var user = _context.Users.FirstOrDefault(u => u.Email == dto.Email);
+            var driver = _context.Drivers.FirstOrDefault(d => d.Email == dto.Email);
+
+            if (user != null)
+            {
+                user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            }
+            else if (driver != null)
+            {
+                driver.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+            }
+            else
+            {
+                return BadRequest("User/Driver not found");
+            }
 
             _context.PasswordResetCodes.Remove(reset);
             _context.SaveChanges();
 
-            return Ok("Password updated successfully");
+            return Ok(new { message = "Password updated successfully" });
         }
+
 
 
         [HttpPost("google-login")]

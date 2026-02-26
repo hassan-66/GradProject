@@ -1,6 +1,6 @@
 ﻿namespace GraduationProject.Dtos
 {
-    public class TrainLocationDto
+    public class BusLocationDto
     {
         public int BusId { get; set; }
         public double Lat { get; set; }
