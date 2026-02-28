@@ -34,48 +34,63 @@ namespace GraduationProject.Controllers
 
             var routeId = startStation.RouteId;
 
-            var bus = _context.Buses
-                .FirstOrDefault(b => b.RouteId == routeId);
+            var buses = _context.Buses
+                .Where(b => b.RouteId == routeId)
+                .ToList();
 
-            if (bus == null)
-                return NotFound("No bus available");
+            if (!buses.Any())
+                return NotFound("No buses available");
 
-            var busLocation = _context.BusLocations
-                .Where(bl => bl.BusId == bus.Id)
-                .OrderByDescending(bl => bl.LastUpdatedAt)
-                .FirstOrDefault();
+            Bus? selectedBus = null;
+            BusLocation? selectedLocation = null;
 
-            if (busLocation == null)
-                return NotFound("Bus location not found");
+            double minDistanceMeters = double.MaxValue;
 
-            // -----------------------------
-            // DISTANCE CALCULATION
-            // -----------------------------
-            double distanceToStartMeters = CalculateDistance(
-                busLocation.Latitude,
-                busLocation.Longitude,
-                startStation.Latitude,
-                startStation.Longitude
-            );
+            foreach (var bus in buses)
+            {
+                var lastLocation = _context.BusLocations
+                    .Where(bl => bl.BusId == bus.Id)
+                    .OrderByDescending(bl => bl.LastUpdatedAt)
+                    .FirstOrDefault();
 
-            double tripDistanceMeters = CalculateDistance(
+                if (lastLocation == null)
+                    continue;
+
+                double distanceMeters = CalculateDistanceMeters(
+                    lastLocation.Latitude,
+                    lastLocation.Longitude,
+                    startStation.Latitude,
+                    startStation.Longitude
+                );
+
+                if (distanceMeters < minDistanceMeters)
+                {
+                    minDistanceMeters = distanceMeters;
+                    selectedBus = bus;
+                    selectedLocation = lastLocation;
+                }
+            }
+
+            if (selectedBus == null || selectedLocation == null)
+                return NotFound("No active buses found");
+
+            double distanceToStationKm = minDistanceMeters / 1000.0;
+
+            double tripDistanceMeters = CalculateDistanceMeters(
                 startStation.Latitude,
                 startStation.Longitude,
                 endStation.Latitude,
                 endStation.Longitude
             );
 
-            // نحول لكيلومتر
-            double distanceToStartKm = distanceToStartMeters / 1000.0;
             double tripDistanceKm = tripDistanceMeters / 1000.0;
 
-            // -----------------------------
-            // ETA CALCULATION
-            // -----------------------------
-            double speedKmPerHour = busLocation.Speed > 0 ? busLocation.Speed : 30;
+            double speedKmPerHour = selectedLocation.Speed > 0
+                ? selectedLocation.Speed
+                : 30;
 
-            double etaHoursDecimal = distanceToStartKm / speedKmPerHour;
-
+            // 🔹 حساب الوقت
+            double etaHoursDecimal = distanceToStationKm / speedKmPerHour;
             int totalMinutes = (int)Math.Ceiling(etaHoursDecimal * 60);
 
             if (totalMinutes < 1)
@@ -84,35 +99,35 @@ namespace GraduationProject.Controllers
             int hours = totalMinutes / 60;
             int minutes = totalMinutes % 60;
 
-            string etaFormatted;
+            string etaFormatted = hours > 0
+                ? $"{hours} hr {minutes} min"
+                : $"{minutes} min";
 
-            if (hours > 0)
-                etaFormatted = $"{hours} hr {minutes} min";
-            else
-                etaFormatted = $"{minutes} min";
-
-            // -----------------------------
-            // RESPONSE
-            // -----------------------------
             var response = new UserTripResponseDto
             {
-                BusNumber = bus.BusNumber,
-                DistanceToStationKm = Math.Round(distanceToStartKm, 2),
-                TripDistanceKm = Math.Round(tripDistanceKm, 2),
+                BusNumber = selectedBus.BusNumber,
+                DistanceToStationKm = $"{Math.Round(distanceToStationKm, 2)} km",
+                TripDistanceKm = $"{Math.Round(tripDistanceKm, 2)} km",
                 EstimatedArrivalTime = etaFormatted
             };
 
             return Ok(response);
         }
-        private double CalculateDistance(double lat1, double lon1, double lat2, double lon2)
+
+        private double CalculateDistanceMeters(
+            double lat1,
+            double lon1,
+            double lat2,
+            double lon2)
         {
-            double R = 6371000; // meters
+            double R = 6371000; // متر
             double dLat = ToRadians(lat2 - lat1);
             double dLon = ToRadians(lon2 - lon1);
 
-            double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                       Math.Cos(ToRadians(lat1)) * Math.Cos(ToRadians(lat2)) *
-                       Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+            double a =
+                Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                Math.Cos(ToRadians(lat1)) * Math.Cos(ToRadians(lat2)) *
+                Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
 
             double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
 

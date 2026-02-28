@@ -4,9 +4,9 @@
     {
         public string BusNumber { get; set; }
 
-        public double DistanceToStationKm { get; set; }
+        public string DistanceToStationKm { get; set; }
 
-        public double TripDistanceKm { get; set; }
+        public string TripDistanceKm { get; set; }
 
         public string EstimatedArrivalTime { get; set; }
     }
