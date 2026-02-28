@@ -23,7 +23,6 @@ namespace GraduationProject.Controllers
             _hub = hub;
         }
 
-
         [HttpPost("update")]
         public async Task<IActionResult> UpdateLocation([FromBody] BusLocationDto loc)
         {
@@ -58,7 +57,7 @@ namespace GraduationProject.Controllers
             return Ok(new { message = "Location updated successfully" });
         }
 
- 
+       
         private void CheckOffRoute(Bus bus, BusLocationDto loc)
         {
             var routePoints = _context.RoutePoints
@@ -68,27 +67,26 @@ namespace GraduationProject.Controllers
             if (!routePoints.Any())
                 return;
 
-            double minDistance = double.MaxValue;
+            double minDistanceMeters = double.MaxValue;
 
             foreach (var point in routePoints)
             {
-                double dist = CalculateDistance(
+                double dist = CalculateDistanceMeters(
                     loc.Lat,
                     loc.Lng,
                     point.Latitude,
                     point.Longitude);
 
-                if (dist < minDistance)
-                    minDistance = dist;
+                if (dist < minDistanceMeters)
+                    minDistanceMeters = dist;
             }
 
-            if (minDistance > 50) // 50 meters
+            if (minDistanceMeters > 50) // 50 meters tolerance
             {
                 CreateAlert(bus, "OffRoute");
             }
         }
 
-      
         private void CreateAlert(Bus bus, string type)
         {
             var recentAlert = _context.Alerts
@@ -116,7 +114,7 @@ namespace GraduationProject.Controllers
                 type);
         }
 
-     
+        
         [HttpGet("eta/{busId}")]
         public IActionResult GetETA(int busId)
         {
@@ -134,9 +132,6 @@ namespace GraduationProject.Controllers
             if (lastLocation == null)
                 return NotFound("No location data");
 
-            if (lastLocation.Speed <= 0)
-                return Ok(new { message = "Bus is stopped", etaMinutes = 0 });
-
             var routePoints = _context.RoutePoints
                 .Where(r => r.RouteId == bus.RouteId)
                 .OrderBy(r => r.Id)
@@ -146,19 +141,19 @@ namespace GraduationProject.Controllers
                 return NotFound("No route points");
 
             int nearestIndex = 0;
-            double minDistance = double.MaxValue;
+            double minDistanceMeters = double.MaxValue;
 
             for (int i = 0; i < routePoints.Count; i++)
             {
-                double dist = CalculateDistance(
+                double dist = CalculateDistanceMeters(
                     lastLocation.Latitude,
                     lastLocation.Longitude,
                     routePoints[i].Latitude,
                     routePoints[i].Longitude);
 
-                if (dist < minDistance)
+                if (dist < minDistanceMeters)
                 {
-                    minDistance = dist;
+                    minDistanceMeters = dist;
                     nearestIndex = i;
                 }
             }
@@ -167,7 +162,7 @@ namespace GraduationProject.Controllers
 
             for (int i = nearestIndex; i < routePoints.Count - 1; i++)
             {
-                remainingDistanceMeters += CalculateDistance(
+                remainingDistanceMeters += CalculateDistanceMeters(
                     routePoints[i].Latitude,
                     routePoints[i].Longitude,
                     routePoints[i + 1].Latitude,
@@ -176,19 +171,35 @@ namespace GraduationProject.Controllers
 
             double remainingDistanceKm = remainingDistanceMeters / 1000.0;
 
-            double etaHours = remainingDistanceKm / lastLocation.Speed;
-            double etaMinutes = etaHours * 60;
+            double speedKmPerHour = lastLocation.Speed > 0 ? lastLocation.Speed : 30;
+
+            double etaHoursDecimal = remainingDistanceKm / speedKmPerHour;
+
+            int totalMinutes = (int)Math.Ceiling(etaHoursDecimal * 60);
+
+            if (totalMinutes < 1)
+                totalMinutes = 1;
+
+            int hours = totalMinutes / 60;
+            int minutes = totalMinutes % 60;
+
+            string etaFormatted;
+
+            if (hours > 0)
+                etaFormatted = $"{hours} hr {minutes} min";
+            else
+                etaFormatted = $"{minutes} min";
 
             return Ok(new
             {
                 busId = bus.Id,
                 remainingDistanceKm = Math.Round(remainingDistanceKm, 2),
-                etaMinutes = Math.Round(etaMinutes, 1)
+                eta = etaFormatted
             });
         }
 
-   
-        private double CalculateDistance(
+     
+        private double CalculateDistanceMeters(
             double lat1,
             double lon1,
             double lat2,

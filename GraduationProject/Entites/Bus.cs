@@ -8,8 +8,6 @@ namespace GraduationProject.Entites
         public string BusNumber { get; set; }
         public string PlateNumber { get; set; }
         public int Capacity { get; set; }
-        public double CurrentLatitude { get; set; }
-        public double CurrentLongitude { get; set; }
         public int RouteId { get; set; }
         public Route Route { get; set; }
         public Driver Driver { get; set; }
