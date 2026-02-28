@@ -73,10 +73,8 @@ namespace GraduationProject.Controllers
             if (selectedBus == null || selectedLocation == null)
                 return NotFound("No active buses found");
 
-            // 🔹 المسافة من الباص للمحطة
             double distanceToStationKm = minDistanceMeters / 1000.0;
 
-            // 🔥 حساب المسافة الفعلية من RoutePoints
             var routePoints = _context.RoutePoints
                 .Where(r => r.RouteId == routeId)
                 .OrderBy(r => r.Order)
@@ -85,7 +83,6 @@ namespace GraduationProject.Controllers
             if (!routePoints.Any())
                 return NotFound("Route points not found");
 
-            // نجيب أقرب نقطة على المسار للمحطة البداية
             int startIndex = GetClosestRoutePointIndex(routePoints, startStation);
             int endIndex = GetClosestRoutePointIndex(routePoints, endStation);
 
@@ -138,7 +135,6 @@ namespace GraduationProject.Controllers
             return Ok(response);
         }
 
-        // 🔹 نجيب أقرب RoutePoint لمحطة معينة
         private int GetClosestRoutePointIndex(List<RoutePoint> points, Station station)
         {
             double minDistance = double.MaxValue;

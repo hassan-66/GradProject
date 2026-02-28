@@ -115,88 +115,88 @@ namespace GraduationProject.Controllers
         }
 
         
-        [HttpGet("eta/{busId}")]
-        public IActionResult GetETA(int busId)
-        {
-            var bus = _context.Buses
-                .FirstOrDefault(b => b.Id == busId);
+        //[HttpGet("eta/{busId}")]
+        //public IActionResult GetETA(int busId)
+        //{
+        //    var bus = _context.Buses
+        //        .FirstOrDefault(b => b.Id == busId);
 
-            if (bus == null)
-                return NotFound("Bus not found");
+        //    if (bus == null)
+        //        return NotFound("Bus not found");
 
-            var lastLocation = _context.BusLocations
-                .Where(l => l.BusId == bus.Id)
-                .OrderByDescending(l => l.LastUpdatedAt)
-                .FirstOrDefault();
+        //    var lastLocation = _context.BusLocations
+        //        .Where(l => l.BusId == bus.Id)
+        //        .OrderByDescending(l => l.LastUpdatedAt)
+        //        .FirstOrDefault();
 
-            if (lastLocation == null)
-                return NotFound("No location data");
+        //    if (lastLocation == null)
+        //        return NotFound("No location data");
 
-            var routePoints = _context.RoutePoints
-                .Where(r => r.RouteId == bus.RouteId)
-                .OrderBy(r => r.Id)
-                .ToList();
+        //    var routePoints = _context.RoutePoints
+        //        .Where(r => r.RouteId == bus.RouteId)
+        //        .OrderBy(r => r.Id)
+        //        .ToList();
 
-            if (!routePoints.Any())
-                return NotFound("No route points");
+        //    if (!routePoints.Any())
+        //        return NotFound("No route points");
 
-            int nearestIndex = 0;
-            double minDistanceMeters = double.MaxValue;
+        //    int nearestIndex = 0;
+        //    double minDistanceMeters = double.MaxValue;
 
-            for (int i = 0; i < routePoints.Count; i++)
-            {
-                double dist = CalculateDistanceMeters(
-                    lastLocation.Latitude,
-                    lastLocation.Longitude,
-                    routePoints[i].Latitude,
-                    routePoints[i].Longitude);
+        //    for (int i = 0; i < routePoints.Count; i++)
+        //    {
+        //        double dist = CalculateDistanceMeters(
+        //            lastLocation.Latitude,
+        //            lastLocation.Longitude,
+        //            routePoints[i].Latitude,
+        //            routePoints[i].Longitude);
 
-                if (dist < minDistanceMeters)
-                {
-                    minDistanceMeters = dist;
-                    nearestIndex = i;
-                }
-            }
+        //        if (dist < minDistanceMeters)
+        //        {
+        //            minDistanceMeters = dist;
+        //            nearestIndex = i;
+        //        }
+        //    }
 
-            double remainingDistanceMeters = 0;
+        //    double remainingDistanceMeters = 0;
 
-            for (int i = nearestIndex; i < routePoints.Count - 1; i++)
-            {
-                remainingDistanceMeters += CalculateDistanceMeters(
-                    routePoints[i].Latitude,
-                    routePoints[i].Longitude,
-                    routePoints[i + 1].Latitude,
-                    routePoints[i + 1].Longitude);
-            }
+        //    for (int i = nearestIndex; i < routePoints.Count - 1; i++)
+        //    {
+        //        remainingDistanceMeters += CalculateDistanceMeters(
+        //            routePoints[i].Latitude,
+        //            routePoints[i].Longitude,
+        //            routePoints[i + 1].Latitude,
+        //            routePoints[i + 1].Longitude);
+        //    }
 
-            double remainingDistanceKm = remainingDistanceMeters / 1000.0;
+        //    double remainingDistanceKm = remainingDistanceMeters / 1000.0;
 
-            double speedKmPerHour = lastLocation.Speed > 0 ? lastLocation.Speed : 30;
+        //    double speedKmPerHour = lastLocation.Speed > 0 ? lastLocation.Speed : 30;
 
-            double etaHoursDecimal = remainingDistanceKm / speedKmPerHour;
+        //    double etaHoursDecimal = remainingDistanceKm / speedKmPerHour;
 
-            int totalMinutes = (int)Math.Ceiling(etaHoursDecimal * 60);
+        //    int totalMinutes = (int)Math.Ceiling(etaHoursDecimal * 60);
 
-            if (totalMinutes < 1)
-                totalMinutes = 1;
+        //    if (totalMinutes < 1)
+        //        totalMinutes = 1;
 
-            int hours = totalMinutes / 60;
-            int minutes = totalMinutes % 60;
+        //    int hours = totalMinutes / 60;
+        //    int minutes = totalMinutes % 60;
 
-            string etaFormatted;
+        //    string etaFormatted;
 
-            if (hours > 0)
-                etaFormatted = $"{hours} hr {minutes} min";
-            else
-                etaFormatted = $"{minutes} min";
+        //    if (hours > 0)
+        //        etaFormatted = $"{hours} hr {minutes} min";
+        //    else
+        //        etaFormatted = $"{minutes} min";
 
-            return Ok(new
-            {
-                busId = bus.Id,
-                remainingDistanceKm = Math.Round(remainingDistanceKm, 2),
-                eta = etaFormatted
-            });
-        }
+        //    return Ok(new
+        //    {
+        //        busId = bus.Id,
+        //        remainingDistanceKm = Math.Round(remainingDistanceKm, 2),
+        //        eta = etaFormatted
+        //    });
+        //}
 
      
         private double CalculateDistanceMeters(
