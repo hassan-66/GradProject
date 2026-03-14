@@ -4,6 +4,7 @@ using GraduationProject.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GraduationProject.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260314185720_AddComplaintRelations")]
+    partial class AddComplaintRelations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,55 +24,6 @@ namespace GraduationProject.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("Driver", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("BusId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("CreatedByAdminId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LicenseNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BusId")
-                        .IsUnique()
-                        .HasFilter("[BusId] IS NOT NULL");
-
-                    b.HasIndex("CreatedByAdminId");
-
-                    b.ToTable("Drivers");
-                });
 
             modelBuilder.Entity("GraduationProject.Entites.Admin", b =>
                 {
@@ -237,6 +191,53 @@ namespace GraduationProject.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Complaints");
+                });
+
+            modelBuilder.Entity("GraduationProject.Entites.Driver", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BusId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CreatedByAdminId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LicenseNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BusId")
+                        .IsUnique();
+
+                    b.HasIndex("CreatedByAdminId");
+
+                    b.ToTable("Drivers");
                 });
 
             modelBuilder.Entity("GraduationProject.Entites.PasswordResetCode", b =>
@@ -483,21 +484,6 @@ namespace GraduationProject.Migrations
                     b.ToTable("Zones");
                 });
 
-            modelBuilder.Entity("Driver", b =>
-                {
-                    b.HasOne("GraduationProject.Entites.Bus", "Bus")
-                        .WithOne("Driver")
-                        .HasForeignKey("Driver", "BusId");
-
-                    b.HasOne("GraduationProject.Entites.Admin", "CreatedByAdmin")
-                        .WithMany("CreatedDrivers")
-                        .HasForeignKey("CreatedByAdminId");
-
-                    b.Navigation("Bus");
-
-                    b.Navigation("CreatedByAdmin");
-                });
-
             modelBuilder.Entity("GraduationProject.Entites.Alert", b =>
                 {
                     b.HasOne("GraduationProject.Entites.Admin", null)
@@ -566,6 +552,23 @@ namespace GraduationProject.Migrations
                     b.Navigation("Bus");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("GraduationProject.Entites.Driver", b =>
+                {
+                    b.HasOne("GraduationProject.Entites.Bus", "Bus")
+                        .WithOne("Driver")
+                        .HasForeignKey("GraduationProject.Entites.Driver", "BusId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GraduationProject.Entites.Admin", "CreatedByAdmin")
+                        .WithMany("CreatedDrivers")
+                        .HasForeignKey("CreatedByAdminId");
+
+                    b.Navigation("Bus");
+
+                    b.Navigation("CreatedByAdmin");
                 });
 
             modelBuilder.Entity("GraduationProject.Entites.Payment", b =>

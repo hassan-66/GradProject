@@ -36,6 +36,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.AddSignalR();
 //builder.Services.AddHostedService<LocationSimulationService>();
+builder.Services.AddHttpClient();
 builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<EmailService>();

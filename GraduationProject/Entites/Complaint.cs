@@ -4,16 +4,16 @@
     {
         public int Id { get; set; }
 
+        public int BusId { get; set; }
         public int UserId { get; set; }
+
+        public string OriginalImagePath { get; set; }
+        public string ResultImagePath { get; set; }
+
+        public bool ProblemDetected { get; set; }
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public User User { get; set; }
-
-        public string Title { get; set; }
-        public string Description { get; set; }
-
-        public string ImageUrl { get; set; }
-
-        public string Status { get; set; }
-
-        public DateTime CreatedAt { get; set; }
+        public Bus Bus { get; set; }
     }
 }
