@@ -29,9 +29,6 @@ namespace GraduationProject.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // =============================
-            // Ticket Relationships
-            // =============================
 
             modelBuilder.Entity<Ticket>()
                 .HasOne(t => t.User)
@@ -51,9 +48,7 @@ namespace GraduationProject.Data
                 .HasForeignKey(t => t.BusId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // =============================
-            // Complaint Relationships 🔥
-            // =============================
+           
 
             modelBuilder.Entity<Complaint>()
                 .HasOne(c => c.User)
@@ -67,18 +62,14 @@ namespace GraduationProject.Data
                 .HasForeignKey(c => c.BusId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // =============================
-            // Station -> Route
-            // =============================
+
 
             modelBuilder.Entity<Station>()
                 .HasOne(s => s.Route)
                 .WithMany(r => r.Stations)
                 .HasForeignKey(s => s.RouteId);
 
-            // =============================
-            // Bus -> Route
-            // =============================
+        
 
             modelBuilder.Entity<Bus>()
                 .HasOne(b => b.Route)
@@ -94,9 +85,7 @@ namespace GraduationProject.Data
                 .WithMany(z => z.Routes)
                 .HasForeignKey(r => r.ZoneId);
 
-            // =============================
-            // BusLocation -> Bus
-            // =============================
+   
 
             modelBuilder.Entity<BusLocation>()
                 .HasOne(bl => bl.Bus)
@@ -112,9 +101,7 @@ namespace GraduationProject.Data
                 .WithMany(u => u.Payments)
                 .HasForeignKey(p => p.UserId);
 
-            // =============================
-            // RoutePoint -> Route
-            // =============================
+            
 
             modelBuilder.Entity<RoutePoint>()
                 .HasOne(rp => rp.Route)
@@ -122,9 +109,7 @@ namespace GraduationProject.Data
                 .HasForeignKey(rp => rp.RouteId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // =============================
-            // Alert -> Bus
-            // =============================
+        
 
             modelBuilder.Entity<Alert>()
                 .HasOne(a => a.Bus)
@@ -132,9 +117,7 @@ namespace GraduationProject.Data
                 .HasForeignKey(a => a.BusId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // =============================
-            // Bus - Admin
-            // =============================
+           
 
             modelBuilder.Entity<Bus>()
                 .HasOne(b => b.CreatedByAdmin)
@@ -142,9 +125,6 @@ namespace GraduationProject.Data
                 .HasForeignKey(b => b.CreatedByAdminId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // =============================
-            // Route - Admin
-            // =============================
 
             modelBuilder.Entity<Route>()
                 .HasOne(r => r.CreatedByAdmin)
@@ -152,9 +132,6 @@ namespace GraduationProject.Data
                 .HasForeignKey(r => r.CreatedByAdminId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // =============================
-            // Station - Admin
-            // =============================
 
             modelBuilder.Entity<Station>()
                 .HasOne(s => s.CreatedStations)
@@ -162,9 +139,7 @@ namespace GraduationProject.Data
                 .HasForeignKey(s => s.CreatedByAdmin)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // =============================
-            // Zone - Admin
-            // =============================
+          
 
             modelBuilder.Entity<Zone>()
                 .HasOne(z => z.CreatedByAdmin)
@@ -172,9 +147,7 @@ namespace GraduationProject.Data
                 .HasForeignKey(z => z.CreatedByAdminId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // =============================
-            // Alerts - Admin
-            // =============================
+            
 
             modelBuilder.Entity<Alert>()
                 .HasOne(a => a.CreatedAlerts)
@@ -182,9 +155,7 @@ namespace GraduationProject.Data
                 .HasForeignKey(a => a.CreatedByAdmin)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // =============================
-            // Driver - Bus (One to One)
-            // =============================
+          
 
             modelBuilder.Entity<Driver>()
                 .HasOne(d => d.Bus)

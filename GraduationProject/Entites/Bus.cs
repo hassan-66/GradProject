@@ -7,6 +7,8 @@ namespace GraduationProject.Entites
         public int Id { get; set; }
         public string BusNumber { get; set; }
         public string PlateNumber { get; set; }
+        public string LicenseNumber { get; set; }
+        public string Status { get; set; } = "Active";
         public int Capacity { get; set; }
         public int RouteId { get; set; }
         public Route Route { get; set; }

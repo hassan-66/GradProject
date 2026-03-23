@@ -30,9 +30,6 @@ public class ComplaintController : ControllerBase
 
         var client = _httpClientFactory.CreateClient();
 
-        // =========================
-        // 1️⃣ إرسال الصورة للـ AI
-        // =========================
         using var content = new MultipartFormDataContent();
         using var stream = dto.Image.OpenReadStream();
 
@@ -59,9 +56,6 @@ public class ComplaintController : ControllerBase
         string fullImageUrl =
             $"http://54.91.157.86:8000{imageUrl}";
 
-        // =========================
-        // 2️⃣ مسارات التخزين
-        // =========================
 
         var originalFolder = Path.Combine(
             _env.WebRootPath,
@@ -76,9 +70,6 @@ public class ComplaintController : ControllerBase
         Directory.CreateDirectory(originalFolder);
         Directory.CreateDirectory(resultFolder);
 
-        // =========================
-        // 3️⃣ حفظ الصورة الأصلية
-        // =========================
         var originalFileName =
             $"original_{Guid.NewGuid()}.jpg";
 
@@ -90,9 +81,7 @@ public class ComplaintController : ControllerBase
             await dto.Image.CopyToAsync(fileStream);
         }
 
-        // =========================
-        // 4️⃣ تحميل صورة نتيجة AI
-        // =========================
+    
         var imageBytes =
             await client.GetByteArrayAsync(fullImageUrl);
 
@@ -106,9 +95,7 @@ public class ComplaintController : ControllerBase
             resultPath,
             imageBytes);
 
-        // =========================
-        // 5️⃣ حفظ في DB
-        // =========================
+     
         var complaint = new Complaint
         {
             BusId = dto.BusId,
@@ -125,9 +112,6 @@ public class ComplaintController : ControllerBase
         _context.Complaints.Add(complaint);
         await _context.SaveChangesAsync();
 
-        // =========================
-        // 6️⃣ الرد
-        // =========================
         return Ok(new
         {
             message = "Complaint analyzed successfully",

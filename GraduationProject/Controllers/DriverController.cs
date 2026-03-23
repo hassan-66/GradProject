@@ -19,7 +19,6 @@ namespace GraduationProject.Controllers
             _context = context;
         }
 
-        // 🔐 Password Hash
         private string HashPassword(string password)
         {
             using var sha256 = SHA256.Create();
@@ -27,9 +26,7 @@ namespace GraduationProject.Controllers
             return Convert.ToBase64String(bytes);
         }
 
-        // ======================================================
-        // 🔑 LOGIN
-        // ======================================================
+
 
         [HttpPost("login")]
         public IActionResult DriverLogin(LoginDto input)
@@ -50,9 +47,7 @@ namespace GraduationProject.Controllers
             });
         }
 
-        // ======================================================
-        // 📋 GET ALL DRIVERS
-        // ======================================================
+
 
         [HttpGet]
         public IActionResult GetAllDrivers()
@@ -78,9 +73,7 @@ namespace GraduationProject.Controllers
             return Ok(drivers);
         }
 
-        // ======================================================
-        // 🔍 GET DRIVER BY ID
-        // ======================================================
+
 
         [HttpGet("{id}")]
         public IActionResult GetDriverById(int id)
@@ -108,9 +101,7 @@ namespace GraduationProject.Controllers
             });
         }
 
-        // ======================================================
-        // ➕ CREATE DRIVER
-        // ======================================================
+
 
         [HttpPost]
         public IActionResult CreateDriver(CreateDriverDto input)
@@ -128,7 +119,7 @@ namespace GraduationProject.Controllers
                 Phone = input.PhoneNumber,
                 Email = input.Email,
                 LicenseNumber = input.LicenseNumber,
-                BusId = input.BusId,
+                //BusId = input.BusId,
                 PasswordHash = HashPassword(input.Password),
                 Status = "Inactive"
             };
@@ -139,9 +130,7 @@ namespace GraduationProject.Controllers
             return Ok(new { message = "Driver created successfully" });
         }
 
-        // ======================================================
-        // ✏ UPDATE DRIVER
-        // ======================================================
+
 
         [HttpPut("{id}")]
         public IActionResult UpdateDriver(int id, UpdateDriverDto input)
@@ -160,9 +149,7 @@ namespace GraduationProject.Controllers
             return Ok(new { message = "Driver updated successfully" });
         }
 
-        // ======================================================
-        // ❌ DELETE DRIVER
-        // ======================================================
+
 
         [HttpDelete("{id}")]
         public IActionResult DeleteDriver(int id)
@@ -181,9 +168,7 @@ namespace GraduationProject.Controllers
             return Ok(new { message = "Driver deleted successfully" });
         }
 
-        // ======================================================
-        // 🟢 CHANGE DRIVER STATUS
-        // ======================================================
+
 
         [HttpPut("status/{id}")]
         public IActionResult ChangeDriverStatus(int id, [FromQuery] string status)
@@ -200,9 +185,7 @@ namespace GraduationProject.Controllers
             return Ok(new { message = "Driver status updated" });
         }
 
-        // ======================================================
-        // 🔄 ASSIGN DRIVER TO BUS
-        // ======================================================
+
 
         [HttpPost("assign")]
         public IActionResult AssignDriverToBus(int driverId, int busId)
@@ -226,9 +209,7 @@ namespace GraduationProject.Controllers
             return Ok(new { message = "Driver assigned to bus successfully" });
         }
 
-        // ======================================================
-        // 🔓 UNASSIGN DRIVER
-        // ======================================================
+
 
         [HttpPost("unassign/{driverId}")]
         public IActionResult UnassignDriver(int driverId)
@@ -245,9 +226,7 @@ namespace GraduationProject.Controllers
             return Ok(new { message = "Driver unassigned from bus" });
         }
 
-        // ======================================================
-        // 🔑 RESET PASSWORD
-        // ======================================================
+
 
         [HttpPut("reset-password/{id}")]
         public IActionResult ResetPassword(int id, [FromBody] string newPassword)
@@ -264,9 +243,6 @@ namespace GraduationProject.Controllers
             return Ok(new { message = "Password reset successfully" });
         }
 
-        // ======================================================
-        // 🔎 SEARCH DRIVERS
-        // ======================================================
 
         [HttpGet("search")]
         public IActionResult SearchDrivers([FromQuery] string name)
@@ -285,9 +261,7 @@ namespace GraduationProject.Controllers
             return Ok(drivers);
         }
 
-        // ======================================================
-        // 👤 DRIVER PROFILE (FOR MOBILE APP)
-        // ======================================================
+
 
         [HttpGet("profile/{id}")]
         public IActionResult GetDriverProfile(int id)
