@@ -46,8 +46,10 @@ namespace GraduationProject.Controllers
 
             var bus = new Bus
             {
+                BusNumber = input.BusNumber,
                 PlateNumber = input.PlateNumber,
                 LicenseNumber = input.LicenseNumber,
+                RouteId = input.RouteId,
                 Status = "Active"
             };
 
